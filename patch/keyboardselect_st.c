@@ -1529,7 +1529,7 @@ kbds_getcursor(int *cx, int *cy)
 }
 
 int
-kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit)
+kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit, unsigned int state)
 {
 	int i, q, dy, ox, oy, eol, islast, prevscr, count, charsize;
 	int alt = IS_SET(MODE_ALTSCREEN);
@@ -1781,23 +1781,36 @@ kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit)
 		}
 		break;
 	case XK_v:
-		if (kbds_mode & KBDS_MODE_SELECT) {
-			selclear();
-			kbds_setmode(kbds_mode & ~(KBDS_MODE_SELECT | KBDS_MODE_LSELECT));
-		} else if (kbds_mode & KBDS_MODE_LSELECT) {
-			selextend(kbds_c.x, kbds_c.y, kbds_seltype, 0);
-			kbds_setmode((kbds_mode ^ KBDS_MODE_LSELECT) | KBDS_MODE_SELECT);
+		if (state & ControlMask) {
+			if (kbds_mode & KBDS_MODE_SELECT) {
+				kbds_seltype = SEL_RECTANGULAR;
+				selextend(kbds_c.x, kbds_c.y, kbds_seltype, 0);
+			} else if (kbds_mode & KBDS_MODE_LSELECT) {
+				kbds_seltype = SEL_RECTANGULAR;
+				selclear();
+				selstart(kbds_c.x, kbds_c.y, 0);
+				kbds_setmode((kbds_mode ^ KBDS_MODE_LSELECT) | KBDS_MODE_SELECT);
+			} else {
+				kbds_seltype = SEL_RECTANGULAR;
+				selstart(kbds_c.x, kbds_c.y, 0);
+				kbds_setmode(kbds_mode | KBDS_MODE_SELECT);
+			}
 		} else {
-			selstart(kbds_c.x, kbds_c.y, 0);
-			kbds_setmode(kbds_mode | KBDS_MODE_SELECT);
+			// plain v (original behavior)
+			if (kbds_mode & KBDS_MODE_SELECT) {
+				selclear();
+				kbds_setmode(kbds_mode & ~(KBDS_MODE_SELECT | KBDS_MODE_LSELECT));
+			} else if (kbds_mode & KBDS_MODE_LSELECT) {
+				selextend(kbds_c.x, kbds_c.y, kbds_seltype, 0);
+				kbds_setmode((kbds_mode ^ KBDS_MODE_LSELECT) | KBDS_MODE_SELECT);
+			} else {
+				/* Start regular selection */
+				kbds_seltype = SEL_REGULAR;
+				selstart(kbds_c.x, kbds_c.y, 0);
+				kbds_setmode(kbds_mode | KBDS_MODE_SELECT);
+			}
 		}
-		break;
-	case XK_S:
-		if (!(kbds_mode & KBDS_MODE_LSELECT)) {
-			kbds_seltype ^= (SEL_REGULAR | SEL_RECTANGULAR);
-			selextend(kbds_c.x, kbds_c.y, kbds_seltype, 0);
-		}
-		break;
+	break;
 	case XK_o:
 	case XK_O:
 		ox = sel.ob.x; oy = sel.ob.y;
@@ -1815,14 +1828,32 @@ kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit)
 			kbds_moveto(kbds_c.x, oy);
 		}
 		break;
-	case XK_y:
 	case XK_Y:
-		if (kbds_isselectmode()) {
+			// exit modes and paste selection
+			if (kbds_isselectmode()) {
+				kbds_copytoclipboard();
+				kbds_setmode(kbds_mode & ~(KBDS_MODE_SELECT | KBDS_MODE_LSELECT | 
+				 KBDS_MODE_SEARCH | KBDS_MODE_REGEX | 
+				 KBDS_MODE_URL | KBDS_MODE_FLASH));
+				kbds_in_use = kbds_quant = 0;
+				selclear();
+				/* Paste directly using xsel.primary */
+				if (xsel.primary)
+					ttywrite(xsel.primary, strlen(xsel.primary), 1);
+			}
+	return MODE_KBDSELECT;
+
+	case XK_y:
+		if (kbds_isselectmode())
 			kbds_copytoclipboard();
-			selclear();
-			kbds_setmode(kbds_mode & ~(KBDS_MODE_SELECT | KBDS_MODE_LSELECT));
-		}
-		break;
+		kbds_in_use = kbds_quant = 0;
+		free(kbds_searchobj.str);
+
+		selclear();
+		if (kbds_scrolldownonexit)
+			kscrolldown(&((Arg){ .i = term.histf }));
+		return MODE_KBDSELECT;
+
 	case XK_SEARCHFW:
 	case XK_SEARCHBW:
 	case XK_slash:
@@ -1943,13 +1974,50 @@ kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit)
 		kbds_moveto(kbds_c.x, alt ? term.row-1
 		                          : MIN(term.c.y + term.scr, term.row-1));
 		break;
+	case XK_d:
+		if (state & ControlMask) {
+			/* Ctrl+D: half page down */
+			prevscr = term.scr;
+			kscrolldown(&((Arg){ .i = term.row / 2 }));
+			kbds_moveto(kbds_c.x, alt ? term.row - 1
+				  : MIN(term.row - 1, kbds_c.y + term.row / 2 + term.scr - prevscr));
+		} else {
+			/* full page down */
+			prevscr = term.scr;
+			kscrolldown(&((Arg){ .i = term.row }));
+			kbds_moveto(kbds_c.x, alt ? term.row - 1
+				  : MIN(term.row - 1, kbds_c.y + term.row + term.scr - prevscr));
+		}
+		break;
+	case XK_u:
+		if (state & ControlMask) {
+			prevscr = term.scr;
+			kscrollup(&((Arg){ .i = term.row / 2 }));
+			kbds_moveto(kbds_c.x, alt ? 0
+			: MAX(0, kbds_c.y - term.row/2 + term.scr - prevscr));
+		} else {
+			// full page up
+			prevscr = term.scr;
+			kscrollup(&((Arg){ .i = term.row }));
+			kbds_moveto(kbds_c.x, alt ? 0
+			: MAX(0, kbds_c.y - term.row + term.scr - prevscr));
+		}
+		break;
 	case XK_Page_Up:
 	case XK_KP_Page_Up:
 	case XK_K:
-		prevscr = term.scr;
-		kscrollup(&((Arg){ .i = term.row }));
-		kbds_moveto(kbds_c.x, alt ? 0
-		                          : MAX(0, kbds_c.y - term.row + term.scr - prevscr));
+		if (state & ControlMask) {
+			// c-u - half page up
+			prevscr = term.scr;
+			kscrollup(&((Arg){ .i = term.row / 2 }));
+			kbds_moveto(kbds_c.x, alt ? 0
+									  : MAX(0, kbds_c.y - term.row/2 + term.scr - prevscr));
+		} else  {
+				prevscr = term.scr;
+				kscrollup(&((Arg){ .i = term.row }));
+				kbds_moveto(kbds_c.x, alt ? 0
+				: MAX(0, kbds_c.y - term.row + term.scr - prevscr));
+		}
 		break;
 	case XK_Page_Down:
 	case XK_KP_Page_Down:
@@ -2010,9 +2078,6 @@ kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit)
 		break;
 	case XK_X:
 		kbds_jumptoprompt(1);
-		break;
-	case XK_u:
-		openUrlOnClick(kbds_c.x, kbds_c.y, url_opener);
 		break;
 	case XK_U:
 		copyUrlOnClick(kbds_c.x, kbds_c.y);

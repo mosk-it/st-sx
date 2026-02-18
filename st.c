@@ -3243,7 +3243,7 @@ eschandle(uchar ascii)
 		write_da();
 		break;
 	case 'c': /* RIS -- Reset to initial state */
-		win.mode ^= kbds_keyboardhandler(XK_Escape, NULL, 0, 1);
+		win.mode ^= kbds_keyboardhandler(XK_Escape, NULL, 0, 1, 0);
 		treset();
 		xsetcursor(0); /* reset cursor style */
 		xfreetitlestack();
@@ -3720,7 +3720,7 @@ tresize(int col, int row)
 	} */
 
 	if (row != term.row || col != term.col)
-		win.mode ^= kbds_keyboardhandler(XK_Escape, NULL, 0, 1);
+		win.mode ^= kbds_keyboardhandler(XK_Escape, NULL, 0, 1, 0);
 
 	term.dirty = xrealloc(term.dirty, row * sizeof(*term.dirty));
 	term.dirtyimg = xrealloc(term.dirtyimg, row * sizeof(*term.dirtyimg));
