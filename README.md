@@ -1,3 +1,6 @@
+This is custom fork of veltza/st-sx with personal config
+
+
 # st-sx - simple terminal with sixels
 
 st-sx is a fork of suckless' [st terminal](https://st.suckless.org/) that aims to provide the best sixel support for the st users. It also includes many useful patches such as ligatures and text reflow. And it is the only st fork that supports hyperlinks (OSC 8) and [branch drawing symbols](https://github.com/kovidgoyal/kitty/pull/7681) as well!
