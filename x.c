@@ -2917,8 +2917,8 @@ kpress(XEvent *ev)
 		}
 		if (match(XK_NO_MOD, e->state) ||
 			(XK_Shift_L | XK_Shift_R) & e->state ||
-				((ksym == XK_u || ksym == XK_d || ksym == XK_v) && ControlMask & e->state)) {
-			//if ctrl, allow only c-u, c-d, c-v
+				((ksym == XK_f || ksym == XK_b || ksym == XK_u || ksym == XK_d || ksym == XK_v) && ControlMask & e->state)) {
+				//if ctrl, allow only c-u, c-d, c-v, c-f, c-b
 			win.mode ^= kbds_keyboardhandler(ksym, buf, len, 0, e->state);
 		}
 		return;

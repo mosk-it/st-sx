@@ -2037,6 +2037,16 @@ kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit, unsigned in
 		kbds_moveto(kbds_c.x, alt ? term.row-1 : term.c.y);
 		break;
 	case XK_b:
+		if (state & ControlMask) {
+			prevscr = term.scr;
+			kscrollup(&((Arg){ .i = term.row }));
+			kbds_moveto(kbds_c.x, alt ? 0
+									  : MAX(0, kbds_c.y - term.row/3*2 + term.scr - prevscr));
+		} else  {
+			// original behaviour, find X in line back
+			kbds_nextword(1, -1, (ksym == XK_b) ? kbds_sdelim : kbds_ldelim);
+			break;
+		}
 	case XK_B:
 		kbds_nextword(1, -1, (ksym == XK_b) ? kbds_sdelim : kbds_ldelim);
 		break;
@@ -2058,6 +2068,19 @@ kbds_keyboardhandler(KeySym ksym, char *buf, int len, int forcequit, unsigned in
 		kbds_moveto(kbds_c.x, kbds_c.y + term.scr - prevscr);
 		break;
 	case XK_f:
+		// full page down
+		if (state & ControlMask) {
+			prevscr = term.scr;
+			kscrolldown(&((Arg){ .i = term.row }));
+			kbds_moveto(kbds_c.x, alt ? term.row - 1
+				  : MIN(term.row - 1, kbds_c.y + term.row/3*2 + term.scr - prevscr));
+		} else { // find char
+			kbds_finddir = (ksym == XK_f || ksym == XK_t) ? 1 : -1;
+			kbds_findtill = (ksym == XK_t || ksym == XK_T) ? 1 : 0;
+			kbds_setmode(kbds_mode | KBDS_MODE_FIND);
+		}
+			return 0;
+
 	case XK_F:
 	case XK_t:
 	case XK_T:

@@ -455,7 +455,7 @@ static MouseShortcut mshortcuts[] = {
 static char *copyoutput[]    = { "/bin/sh", "-c", "st-copyout", "externalpipe", NULL };
 
 /* Example of externalpipein */
-// static char *setbgcolorcmd[] = { "/bin/sh", "-c", "printf '\033]11;#008000\007'", "externalpipein", NULL };
+static char *setbgcolorcmd[] = { "/bin/sh", "-c", "printf '\033]11;#008000\007'", "externalpipein", NULL };
 
 static Shortcut shortcuts[] = {
 	/* mask                 keysym          function         argument   screen */
@@ -478,15 +478,14 @@ static Shortcut shortcuts[] = {
 	{ ShiftMask,            XK_Page_Down,   kscrolldown,     {.i = -1}, S_PRI },
 	{ ControlMask,			XK_B,           kscrollup,       {.i = -1}, S_PRI },
 	{ ControlMask,			XK_F,           kscrolldown,     {.i = -1}, S_PRI },
-	{ ControlMask,			XK_y,           selpaste,        {.i =  -1} },
+	{ TERMMOD,				XK_Y,           selpaste,        {.i =  -1} },
+	// { ControlMask,			XK_m,           externalpipe,    { .v = copytest"" } },
 	{ ShiftMask,            XK_Insert,      clippaste,       {.i =  0} },
 	{ TERMMOD,              XK_Num_Lock,    numlock,         {.i =  0} },
 	{ TERMMOD,              XK_Return,      newterm,         {.i =  NEWTERM_FG_CWD} },
 	{ TERMMOD,              XK_space,       keyboard_select, { 0 } },
-	{ ControlMask, XK_slash, keyboard_select, { 0 } },
-	{ TERMMOD,              XK_F,           searchforward,   { 0 } },
-	{ TERMMOD,              XK_B,           searchbackward,  { 0 } },
-	{ TERMMOD,              XK_I,           keyboard_flash,  { 0 } },
+	{ ControlMask,			XK_slash,		keyboard_select, { 0 } },
+	{ TERMMOD,              XK_question,           searchbackward,  { 0 } },
 	{ TERMMOD,              XK_N,           keyboard_regex,  { 0 } },
 	{ TERMMOD,              XK_M,           keyboard_url,    { 0 } },
 	{ TERMMOD,              XK_Z,           scrolltoprompt,  {.i = -1}, S_PRI },
