@@ -9,6 +9,7 @@
 static char *font = "Source Code Pro Medium:pixelsize=13:antialias=true:autohint=true";
 
 
+
 /* Bold font. Optional. Note: The font size is set automatically for this font. */
 static char *font_bold;
 
@@ -455,7 +456,10 @@ static MouseShortcut mshortcuts[] = {
 static char *copyoutput[]    = { "/bin/sh", "-c", "st-copyout", "externalpipe", NULL };
 
 /* Example of externalpipein */
-static char *setbgcolorcmd[] = { "/bin/sh", "-c", "printf '\033]11;#008000\007'", "externalpipein", NULL };
+// static char *setbgcolorcmd[] = { "/bin/sh", "-c", "printf '\033]11;#008000\007'", "externalpipein", NULL };
+// static char *filterandpasstovim[] = { "grep -v \"$USER@$HOST\" %s | sed 's\/[[:space:]]*$\/\/' | vim - \r", NULL };
+static char *filterandpasstovim[] = { "grep -v \"$USER@$HOST\" %s | sed 's/[[:space:]]*$//' | vim - \r", NULL };
+
 
 static Shortcut shortcuts[] = {
 	/* mask                 keysym          function         argument   screen */
@@ -471,9 +475,6 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_O,           changealpha,     {.f = +0.05} },
 	{ TERMMOD,              XK_P,           changealpha,     {.f = -0.05} },
 	{ TERMMOD,              XK_L,           changealpha,     {.f = 0} },
-	//{ TERMMOD,              XK_,           changealphaunfocused, {.f = +0.05} },
-	//{ TERMMOD,              XK_,           changealphaunfocused, {.f = -0.05} },
-	//{ TERMMOD,              XK_,           changealphaunfocused, {.f = 0} },
 	{ ShiftMask,            XK_Page_Up,     kscrollup,       {.i = -1}, S_PRI },
 	{ ShiftMask,            XK_Page_Down,   kscrolldown,     {.i = -1}, S_PRI },
 	{ ControlMask,			XK_B,           kscrollup,       {.i = -1}, S_PRI },
@@ -492,11 +493,11 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_X,           scrolltoprompt,  {.i =  1}, S_PRI },
 	{ XK_NO_MOD,            XK_F11,         fullscreen,      {.i =  0} },
 	{ MODKEY,               XK_Return,      fullscreen,      {.i =  0} },
-	{ MODKEY,               XK_o,           externalpipe,    {.v = copyoutput }, S_PRI },
+	{ TERMMOD,              XK_K,           externalpipefifoinject, {.v = filterandpasstovim }, S_PRI },
 	{ TERMMOD,              XK_C,           clipcopy,        {.i =  0} },
-	{ TERMMOD,             XK_plus,      zoom,           {.f = +1} },
-	{ TERMMOD,             XK_minus,     zoom,           {.f = -1} },
-	{ TERMMOD,             XK_0,         zoomreset,      {.f =  0} },
+	{ TERMMOD,             XK_plus,         zoom,           {.f = +1} },
+	{ TERMMOD,             XK_minus,        zoom,           {.f = -1} },
+	{ TERMMOD,             XK_0,            zoomreset,      {.f =  0} },
 };
 
 /*

@@ -69,3 +69,21 @@ void
 externalpipein(const Arg *arg) {
 	extpipe(arg, 1);
 }
+
+void
+externalpipefifoinject(const Arg *arg) {
+	char *fifopath = "/tmp/st-fifo";
+	char writecmd[64];
+	char readcmd[512];
+
+	unlink(fifopath);
+	mkfifo(fifopath, 0600);
+
+	snprintf(writecmd, sizeof(writecmd), "cat > %s", fifopath);
+	char *wcmd[] = { "/bin/sh", "-c", writecmd, NULL };
+	Arg a = { .v = wcmd };
+	extpipe(&a, 0);
+
+	snprintf(readcmd, sizeof(readcmd), ((char **)arg->v)[0], fifopath);
+	ttywrite(readcmd, strlen(readcmd), 0);
+}
