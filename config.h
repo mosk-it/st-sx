@@ -346,7 +346,7 @@ unsigned int bold_is_not_bright = 1;
  * 0: the cursor color is fixed (default st behavior)
  * 1: the cursor uses reverse colors based on the colors of the text cell
 */
-unsigned int dynamic_cursor_color = 1;
+unsigned int dynamic_cursor_color = 0;
 
 /*
  * https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h4-Functions-using-CSI-_-ordered-by-the-final-character-lparen-s-rparen:CSI-Ps-SP-q.1D81
