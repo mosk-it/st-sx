@@ -279,7 +279,7 @@ static const char *colorname[] = {
 	"red3",
 	"green3",
 	"yellow3",
-	"blue2",
+	"#0077ff",
 	"magenta3",
 	"cyan3",
 	"gray90",
@@ -458,7 +458,7 @@ static char *copyoutput[]    = { "/bin/sh", "-c", "st-copyout", "externalpipe", 
 /* Example of externalpipein */
 // static char *setbgcolorcmd[] = { "/bin/sh", "-c", "printf '\033]11;#008000\007'", "externalpipein", NULL };
 // static char *filterandpasstovim[] = { "grep -v \"$USER@$HOST\" %s | sed 's\/[[:space:]]*$\/\/' | vim - \r", NULL };
-static char *filterandpasstovim[] = { "grep -v \"$USER@$HOST\" %s | sed 's/[[:space:]]*$//' | vim - \r", NULL };
+static char *filterandpasstovim[] = { " grep -v \"$USER@$HOST\" %s | sed 's/[[:space:]]*$//' | vim - \r", NULL };
 
 
 static Shortcut shortcuts[] = {
